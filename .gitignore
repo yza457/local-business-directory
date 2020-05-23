@@ -13,6 +13,3 @@
 
 #intelliJ settings
 .idea/
-
-#tomcat related files
-.catalina.base_IS_UNDEFINED/
