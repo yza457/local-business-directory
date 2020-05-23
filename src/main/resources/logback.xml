@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+  <!--
+  define parameters
+  TRACE < DEBUG < INFO < WARN < ERROR
+  e.g logger.trace("msg"), usually use debug, info, warn
+  -->
+  <property name="log.level" value="debug"/> <!-- only record debug level or above -->
+  <property name="log.maxHistory" value="30" />
+
+  <if condition='isDefined("catalina.base")'>
+    <then>
+      <property name="log.filePath" value="${catalina.base}/logs/webapps"/>
+    </then>
+    <else>
+      <property name="log.filePath" value="C:\Users\HP\AppData\Local\JetBrains\IntelliJIdea2020.1\tomcat\Unnamed_o2o\logs\webapps"/>
+    </else>
+  </if>
+
+  <property name="log.filePath" value="${catalina.base}/logs/webapps"/>
+  <property name="log.pattern"
+            value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} -%msg%n"/>
+  <!-- console settings -->
+  <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${log.pattern}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- debug appender -->
+  <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- file path-->
+    <file>${log.filePath}/debug.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- file name pattern -->
+      <fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <!-- max num of days of logs in file -->
+      <maxHistory>${log.maxHistory}</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${log.pattern}</pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>DEBUG</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+  </appender>
+
+  <!-- info appender -->
+  <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- file path-->
+    <file>${log.filePath}/info.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- file name pattern -->
+      <fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <!-- max num of days of logs in file -->
+      <maxHistory>${log.maxHistory}</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${log.pattern}</pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>INFO</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+  </appender>
+
+  <!-- error appender -->
+  <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- file path-->
+    <file>${log.filePath}/error.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- file name pattern -->
+      <fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <!-- max num of days of logs in file -->
+      <maxHistory>${log.maxHistory}</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${log.pattern}</pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+  </appender>
+
+  <logger name="com.yza457.o2o" level="${log.level}" additivity="true">
+    <appender-ref ref="debugAppender"/>
+    <appender-ref ref="infoAppender"/>
+    <appender-ref ref="errorAppender"/>
+  </logger>
+
+  <root level="info">
+    <appender-ref ref="consoleAppender"/>
+  </root>
+
+</configuration>

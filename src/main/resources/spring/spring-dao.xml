@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- 1. config MyBatis -->
+    <context:property-placeholder location="classpath:jdbc.properties" />
+<!--    <bean class="com.yza457.o2o.util.EncryptPropertyPlaceholderConfigurer">-->
+<!--        <property name="locations">-->
+<!--            <list>-->
+<!--                <value>classpath:jdbc.properties</value>-->
+<!--                <value>classpath:redis.properties</value>-->
+<!--            </list>-->
+<!--        </property>-->
+<!--        <property name="fileEncoding" value="UTF-8" />-->
+<!--    </bean>-->
+    <!-- 2.jdbc connections with master and slave datasource -->
+    <bean id="abstractDataSource" abstract="true" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="maxPoolSize" value="30"/>
+        <property name="minPoolSize" value="10"/>
+        <property name="autoCommitOnClose" value="false"/>
+        <property name="checkoutTimeout" value="10000"/>
+        <property name="acquireRetryAttempts" value="2"/>
+    </bean>
+
+    <bean id="master" parent="abstractDataSource">
+        <property name="driverClass" value="${jdbc.driver}" />
+        <property name="jdbcUrl" value="${jdbc.master.url}" />
+        <property name="user" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+    <bean id="slave" parent="abstractDataSource">
+        <property name="driverClass" value="${jdbc.driver}" />
+        <property name="jdbcUrl" value="${jdbc.slave.url}" />
+        <property name="user" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+
+    <!-- map targetDataSources to routing data sources -->
+    <bean id="dynamicDataSource" class="com.yza457.o2o.dao.split.DynamicDataSource">
+        <property name="targetDataSources">
+            <map>
+                <entry value-ref="master" key="master"></entry>
+                <entry value-ref="slave" key="slave"></entry>
+            </map>
+        </property>
+    </bean>
+
+    <!--determine and load datasource only when executing sql-->
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+        <property name="targetDataSource">
+            <ref bean="dynamicDataSource" />
+        </property>
+    </bean>
+
+    <!-- 3. set SqlSessionFactory Obejct -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- inject database link -->
+        <property name="dataSource" ref="dataSource" />
+        <!-- set MyBatis config file-->
+        <property name="configLocation" value="classpath:mybatis-config.xml" />
+        <!-- scan entity package and use the name -->
+        <property name="typeAliasesPackage" value="com.yza457.entity" />
+        <!-- scan xml files for config -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml" />
+    </bean>
+
+    <!-- 4.config DAO interface and inject into Spring container -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- inject sqlSessionFactory -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <!-- provide dao package -->
+        <property name="basePackage" value="com.yza457.o2o.dao" />
+    </bean>
+</beans>

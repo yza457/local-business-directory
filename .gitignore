@@ -1,0 +1,18 @@
+*.class
+
+#system file
+*.DS_Store
+
+#package files
+*.jar
+*.war
+*.ear
+
+#maven generated target folder
+.target/
+
+#intelliJ settings
+.idea/
+
+#tomcat related files
+.catalina.base_IS_UNDEFINED/
